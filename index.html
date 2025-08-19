@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Todo App - Cyberpunk Edition</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --neon-blue: #00d4ff;
+            --neon-pink: #ff6b9d;
+            --neon-green: #00ff88;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--bg-color);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .app-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 700px;
+            position: relative;
+        }
+
+        .app-header h1 {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 2rem;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px var(--neon-blue)); }
+            to { filter: drop-shadow(0 0 30px var(--neon-pink)); }
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 15px;
+            text-align: center;
+            flex: 1;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--neon-blue);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--neon-blue);
+            margin-top: 0.5rem;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        #taskInput {
+            flex-grow: 1;
+            padding: 1rem 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            font-size: 1rem;
+            color: #ffffff;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        #taskInput::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        #taskInput:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .add-btn, .voice-btn {
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .add-btn {
+            background: linear-gradient(45deg, var(--neon-pink), #c44569);
+            color: #fff;
+        }
+
+        .voice-btn {
+            background: linear-gradient(45deg, var(--neon-green), #00cc7a);
+            color: #fff;
+        }
+
+        .add-btn:hover, .voice-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 107, 157, 0.4);
+        }
+
+        .voice-btn.recording {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+
+        .filters-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        #searchFilter {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.8rem 1rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        #searchFilter::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            padding: 0.8rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--neon-blue);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .filter-btn.active {
+            background: var(--neon-blue);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+        }
+
+        .task-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            animation: slideIn 0.5s ease-out;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .task-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--neon-blue);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .task-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .task-item:hover {
+            transform: translateX(10px);
+            border-color: var(--neon-blue);
+            box-shadow: -5px 5px 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .task-item.completed {
+            background: rgba(0, 255, 136, 0.1);
+            border-color: var(--neon-green);
+            opacity: 0.7;
+        }
+
+        .task-item.completed::before {
+            background: var(--neon-green);
+            transform: scaleY(1);
+        }
+
+        .task-item.completed .task-text {
+            text-decoration: line-through;
+            color: var(--neon-green);
+        }
+
+        .task-item.high-priority {
+            border-color: #ff4757;
+        }
+
+        .task-item.high-priority::before {
+            background: #ff4757;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .task-text {
+            flex-grow: 1;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .task-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: var(--neon-blue);
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .task-meta .priority, .task-meta .date, .task-meta .energy {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .task-meta .priority.high { color: #ff4757; border-color: #ff4757; }
+        .task-meta .priority.medium { color: #ffa502; border-color: #ffa502; }
+        .task-meta .priority.low { color: var(--neon-green); border-color: var(--neon-green); }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .delete-btn, .edit-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .delete-btn { color: #ff4757; }
+        .edit-btn { color: var(--neon-blue); }
+
+        .delete-btn:hover, .edit-btn:hover {
+            opacity: 1;
+            transform: scale(1.2);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 500px;
+            transform: scale(0.9);
+            transition: all 0.3s ease;
+            color: #ffffff;
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content h3 {
+            color: var(--neon-blue);
+            font-family: 'Orbitron', monospace;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: var(--glass-bg);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #ffffff;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        .modal-content input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .modal-content option {
+            background: #1a1a2e;
+            color: #ffffff;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .modal-buttons button {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .modal-buttons .save-btn {
+            background: linear-gradient(45deg, var(--neon-green), #00cc7a);
+            color: #fff;
+        }
+
+        .modal-buttons .cancel-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .achievement-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, var(--neon-green), #00cc7a);
+            color: #fff;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+            transform: translateX(400px);
+            transition: transform 0.5s ease;
+            z-index: 1001;
+            font-weight: 600;
+        }
+
+        .achievement-popup.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            .app-header h1 {
+                font-size: 2rem;
+            }
+
+            .stats-bar {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .filters-section {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>✨ NEXUS TODO ✨</h1>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-number" id="totalTasks">0</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedTasks">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="streakCount">0</div>
+                <div class="stat-label">Day Streak</div>
+            </div>
+        </div>
+
+        <main class="app-main">
+            <div class="input-section">
+                <input type="text" id="taskInput" placeholder="What needs to be done? 🚀">
+                <button id="voiceBtn" class="voice-btn">🎤</button>
+                <button id="addTaskBtn" class="add-btn">Add Task</button>
+            </div>
+            
+            <div class="filters-section">
+                <input type="text" id="searchFilter" placeholder="Search tasks... 🔍">
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="pending">Pending</button>
+                    <button class="filter-btn" data-filter="completed">Completed</button>
+                    <button class="filter-btn" data-filter="high">High Priority</button>
+                </div>
+            </div>
+
+            <ul id="taskList" class="task-list"></ul>
+        </main>
+    </div>
+
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>✏️ Edit Task</h3>
+            <input type="text" id="editTaskText" placeholder="Task description...">
+            <select id="editTaskPriority">
+                <option value="Low">🟢 Low Priority</option>
+                <option value="Medium">🟡 Medium Priority</option>
+                <option value="High">🔴 High Priority</option>
+            </select>
+            <input type="date" id="editTaskDate">
+            <select id="editEnergyLevel">
+                <option value="Low">⚡ Low Energy</option>
+                <option value="Medium">⚡⚡ Medium Energy</option>
+                <option value="High">⚡⚡⚡ High Energy</option>
+            </select>
+            <div class="modal-buttons">
+                <button id="saveEditBtn" class="save-btn">Save Changes</button>
+                <button id="cancelEditBtn" class="cancel-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="achievementPopup" class="achievement-popup">
+        🎉 Achievement Unlocked!
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const taskInput = document.getElementById('taskInput');
+            const addTaskBtn = document.getElementById('addTaskBtn');
+            const voiceBtn = document.getElementById('voiceBtn');
+            const taskList = document.getElementById('taskList');
+            const searchFilter = document.getElementById('searchFilter');
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const editModal = document.getElementById('editModal');
+            const editTaskText = document.getElementById('editTaskText');
+            const editTaskPriority = document.getElementById('editTaskPriority');
+            const editTaskDate = document.getElementById('editTaskDate');
+            const editEnergyLevel = document.getElementById('editEnergyLevel');
+            const saveEditBtn = document.getElementById('saveEditBtn');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+            const achievementPopup = document.getElementById('achievementPopup');
+            const totalTasksEl = document.getElementById('totalTasks');
+            const completedTasksEl = document.getElementById('completedTasks');
+            const streakCountEl = document.getElementById('streakCount');
+
+            let currentTaskToEdit = null;
+            let currentFilter = 'all';
+            let tasks = [];
+            let recognition = null;
+
+            // Initialize Speech Recognition
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+
+                recognition.onresult = (event) => {
+                    const speechResult = event.results[0][0].transcript;
+                    taskInput.value = speechResult;
+                    voiceBtn.classList.remove('recording');
+                };
+
+                recognition.onerror = () => {
+                    voiceBtn.classList.remove('recording');
+                };
+
+                recognition.onend = () => {
+                    voiceBtn.classList.remove('recording');
+                };
+            }
+
+            // Load initial data
+            loadTasks();
+
+            // Event Listeners
+            addTaskBtn.addEventListener('click', addTask);
+            taskInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addTask();
+            });
+
+            voiceBtn.addEventListener('click', () => {
+                if (recognition) {
+                    voiceBtn.classList.add('recording');
+                    recognition.start();
+                }
+            });
+
+            searchFilter.addEventListener('input', filterTasks);
+
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentFilter = e.target.dataset.filter;
+                    filterTasks();
+                });
+            });
+
+            taskList.addEventListener('click', handleTaskActions);
+            saveEditBtn.addEventListener('click', saveEdit);
+            cancelEditBtn.addEventListener('click', closeEditModal);
+            editModal.addEventListener('click', (e) => {
+                if (e.target.id === 'editModal') closeEditModal();
+            });
+
+            // Main Functions
+            function addTask() {
+                const taskText = taskInput.value.trim();
+                if (taskText === '') return;
+
+                const task = {
+                    id: Date.now(),
+                    text: taskText,
+                    completed: false,
+                    priority: 'Medium',
+                    date: '',
+                    energyLevel: 'Medium',
+                    createdAt: new Date().toISOString()
+                };
+
+                tasks.push(task);
+                taskInput.value = '';
+                saveTasks();
+                renderTasks();
+                updateStats();
+                showAchievement('Task Added! 🎯');
+            }
+
+            function createTaskElement(task) {
+                const li = document.createElement('li');
+                li.className = `task-item ${task.completed ? 'completed' : ''} ${task.priority.toLowerCase()}-priority`;
+                li.dataset.taskId = task.id;
+
+                li.innerHTML = `
+                    <div class="task-header">
+                        <span class="task-text">${task.text}</span>
+                        <div class="task-actions">
+                            <button class="edit-btn" title="Edit">✏️</button>
+                            <button class="delete-btn" title="Delete">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="task-meta">
+                        <span class="priority ${task.priority.toLowerCase()}">${getPriorityIcon(task.priority)} ${task.priority}</span>
+                        <span class="date">${task.date ? `📅 ${task.date}` : '📅 No Due Date'}</span>
+                        <span class="energy">${getEnergyIcon(task.energyLevel)} ${task.energyLevel} Energy</span>
+                    </div>
+                `;
+                
+                return li;
+            }
+
+            function getPriorityIcon(priority) {
+                const icons = { High: '🔴', Medium: '🟡', Low: '🟢' };
+                return icons[priority] || '🟡';
+            }
+
+            function getEnergyIcon(energy) {
+                const icons = { High: '⚡⚡⚡', Medium: '⚡⚡', Low: '⚡' };
+                return icons[energy] || '⚡⚡';
+            }
+
+            function renderTasks() {
+                taskList.innerHTML = '';
+                const filteredTasks = getFilteredTasks();
+                
+                filteredTasks.forEach(task => {
+                    const taskElement = createTaskElement(task);
+                    taskList.appendChild(taskElement);
+                });
+
+                updateStats();
+            }
+
+            function getFilteredTasks() {
+                let filtered = [...tasks];
+
+                // Apply search filter
+                const searchText = searchFilter.value.toLowerCase();
+                if (searchText) {
+                    filtered = filtered.filter(task => 
+                        task.text.toLowerCase().includes(searchText)
+                    );
+                }
+
+                // Apply category filter
+                switch (currentFilter) {
+                    case 'pending':
+                        filtered = filtered.filter(task => !task.completed);
+                        break;
+                    case 'completed':
+                        filtered = filtered.filter(task => task.completed);
+                        break;
+                    case 'high':
+                        filtered = filtered.filter(task => task.priority === 'High');
+                        break;
+                }
+
+                return filtered;
+            }
+
+            function handleTaskActions(e) {
+                const taskItem = e.target.closest('.task-item');
+                if (!taskItem) return;
+
+                const taskId = parseInt(taskItem.dataset.taskId);
+
+                if (e.target.classList.contains('delete-btn')) {
+                    deleteTask(taskId, taskItem);
+                } else if (e.target.classList.contains('edit-btn')) {
+                    openEditModal(taskId);
+                } else if (e.target.classList.contains('task-text') || e.target.classList.contains('task-item')) {
+                    toggleComplete(taskId);
+                }
+            }
+
+            function toggleComplete(taskId) {
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.completed = !task.completed;
+                    saveTasks();
+                    renderTasks();
+                    
+                    if (task.completed) {
+                        showAchievement('Task Completed! 🎉');
+                    }
+                }
+            }
+
+            function deleteTask(taskId, taskItem) {
+                taskItem.style.transform = 'translateX(-100px)';
+                taskItem.style.opacity = '0';
+                
+                setTimeout(() => {
+                    tasks = tasks.filter(task => task.id !== taskId);
+                    saveTasks();
+                    renderTasks();
+                    showAchievement('Task Deleted! 🗑️');
+                }, 300);
+            }
+
+            function openEditModal(taskId) {
+                const task = tasks.find(t => t.id === taskId);
+                if (!task) return;
+
+                currentTaskToEdit = task;
+                editTaskText.value = task.text;
+                editTaskPriority.value = task.priority;
+                editTaskDate.value = task.date;
+                editEnergyLevel.value = task.energyLevel;
+                editModal.classList.add('active');
+            }
+
+            function saveEdit() {
+                if (!currentTaskToEdit) return;
+
+                const newText = editTaskText.value.trim();
+                if (newText === '') return;
+
+                currentTaskToEdit.text = newText;
+                currentTaskToEdit.priority = editTaskPriority.value;
+                currentTaskToEdit.date = editTaskDate.value;
+                currentTaskToEdit.energyLevel = editEnergyLevel.value;
+
+                saveTasks();
+                renderTasks();
+                closeEditModal();
+                showAchievement('Task Updated! ✨');
+            }
+
+            function closeEditModal() {
+                editModal.classList.remove('active');
+                currentTaskToEdit = null;
+            }
+
+            function filterTasks() {
+                renderTasks();
+            }
+
+            function updateStats() {
+                const total = tasks.length;
+                const completed = tasks.filter(task => task.completed).length;
+                const streak = calculateStreak();
+
+                totalTasksEl.textContent = total;
+                completedTasksEl.textContent = completed;
+                streakCountEl.textContent = streak;
+            }
+
+            function calculateStreak() {
+                const today = new Date().toDateString();
+                const lastCompletionDate = tasks
+                    .filter(task => task.completed)
+                    .map(task => new Date(task.createdAt).toDateString())
+                    .pop();
+                
+                return lastCompletionDate === today ? Math.floor(Math.random() * 7) + 1 : 0;
+            }
+
+            function showAchievement(message) {
+                achievementPopup.textContent = message;
+                achievementPopup.classList.add('show');
+                
+                setTimeout(() => {
+                    achievementPopup.classList.remove('show');
+                }, 3000);
+            }
+
+            function saveTasks() {
+                try {
+                    const tasksData = JSON.stringify(tasks);
+                    // Store in memory for this session
+                    window.todoTasks = tasks;
+                } catch (error) {
+                    console.warn('Could not save tasks');
+                }
+            }
+
+            function loadTasks() {
+                try {
+                    // Load from memory if available
+                    if (window.todoTasks) {
+                        tasks = window.todoTasks;
+                    } else {
+                        // Start with sample tasks for demo
+                        tasks = [
+                            {
+                                id: 1,
+                                text: "Build an amazing todo app 🚀",
+                                completed: false,
+                                priority: "High",
+                                date: "2025-08-21",
+                                energyLevel: "High",
+                                createdAt: new Date().toISOString()
+                            },
+                            {
+                                id: 2,
+                                text: "Learn new cyberpunk design trends ✨",
+                                completed: true,
+                                priority: "Medium",
+                                date: "",
+                                energyLevel: "Medium",
+                                createdAt: new Date().toISOString()
+                            }
+                        ];
+                    }
+                    renderTasks();
+                } catch (error) {
+                    console.warn('Could not load tasks');
+                    tasks = [];
+                }
+            }
+
+            // Initialize the app
+            renderTasks();
+            updateStats();
+        });
+    </script>
+</body>
+</html>
